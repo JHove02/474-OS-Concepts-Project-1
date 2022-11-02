@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <sys/wait.h>
 
 int main()
 {
@@ -48,14 +49,11 @@ int main()
         }
     }
 
-    if (fork() == 0)
+    int finalNum;
+    for (int i = 0; i < process; i++)
     {
-
-        
-        int finalNum;
-        for (int i = 0; i < process; i++)
+        if (fork() == 0)
         {
-
             switch (file)
             {
             case 1:
@@ -74,15 +72,22 @@ int main()
             {
                 fileLength += 1;
             }
-            
+
             int blockSize = fileLength / process;
             fseek(fp, blockSize * i, SEEK_Set);
-            
+
             int blockTotal = 0;
-            for(int j = 0; j < blockSize; i++){
+            for (int j = 0; j < blockSize; i++)
+            {
                 int num;
-                fscanf(fp, "%d", &num);
-                num += blockTotal;
+                if (fscanf(fp, "%d", &num))
+                {
+                    num += blockTotal;
+                }
+                else
+                {
+                    break;
+                }
             }
         }
     }
