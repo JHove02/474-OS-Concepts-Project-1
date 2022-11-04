@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <stdbool.h>
-#include <sys/wait.h>
 #include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int main()
 {
@@ -12,6 +12,9 @@ int main()
     int process;
     FILE *fp;
     int fileLength = 0;
+    int fd[2];
+
+    pipe(fd);
 
     while (loop)
     {
@@ -26,7 +29,7 @@ int main()
         }
         else
         {
-            printf("\n %d is not a valid process", process);
+            printf("\n%d is not a valid process\n", process);
         }
     }
 
@@ -46,52 +49,64 @@ int main()
         }
         else
         {
-            printf("\n %d is not a valid file", file);
+            printf("\n%d is not a valid file\n", file);
         }
     }
 
-    int finalNum;
+    int finalNum; // final sum of the file
+
     for (int i = 0; i < process; i++)
     {
         if (fork() == 0)
         {
+            // open the file
             switch (file)
             {
             case 1:
-                fp = fopen("file1.dat", "r");
+                fp = fopen("P1 Data\file1.dat", "r");
                 break;
             case 2:
-                fp = fopen("file2.dat", "r");
+                fp = fopen("P1 Data\file2.dat", "r");
                 break;
             case 3:
-                fp = fopen("file3.dat", "r");
+                fp = fopen("P1 Data\file3.dat", "r");
                 break;
             }
 
             int temp;
+            // scan the file to find its length
             while (fscanf(fp, "%d", &temp) == 1)
             {
                 fileLength += 1;
             }
 
-            int blockSize = fileLength / process;
-            fseek(fp, blockSize * i, SEEK_Set);
+            int blockSize = fileLength / process; // Size of the area each child must read
+            fseek(fp, blockSize * i, SEEK_SET);   // jump to an offset in the file so the child can scan that section
 
-            int blockTotal = 0;
-            for (int j = 0; j < blockSize; i++)
+            int blockTotal;                     // Sum of the block each process reads
+            for (int j = 0; j < blockSize; i++) // scan each line within the childs designated index
             {
                 int num;
-                if (fscanf(fp, "%d", &num))
+                if (fscanf(fp, "%d", &num)) // scan line and add num to blockTotal
                 {
-                    num += blockTotal;
+                    blockTotal += num;
                 }
                 else
                 {
                     break;
                 }
             }
+            printf("\nChild %d sum is: %d", i, blockTotal); // DOES NOT CURRENTYL WORK
+
+            close(fd[0]);
+            write(fd[1], &blockTotal, sizeof(int));
+            close(fd[1]);
         }
     }
+    close(fd[1]);
+    read(fd[0], &finalNum, sizeof(finalNum));
+    close(fd[0]);
+    printf("\nTotal sum is: %d", finalNum);
 
     return 0;
 }
