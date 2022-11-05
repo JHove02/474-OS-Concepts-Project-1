@@ -53,20 +53,21 @@ int main()
 
     int finalNum = 0; // final sum of the file
 
+    //loop for all processes
     for (int i = 0; i < process; i++)
     {
         int fd[2];
-        if(pipe(fd)==-1){
+        if(pipe(fd)==-1){ //check if pipe was made
                 return -1;
         }
-        if (fork() == 0)
+        if (fork() == 0) //if not parent process
         {
             
              FILE *fp;// open the file
             switch (file)
             {
             case 1:
-                fp = fopen("file1.dat", "r");
+                fp = fopen("file1.dat", "r"); //open file read only
                 fileLength = 1000;
                 break;
             case 2:
@@ -79,7 +80,7 @@ int main()
                 break;
             }
             
-            if(fp == NULL){
+            if(fp == NULL){ //if file not found
                 printf("File not located\n");
                 return -1;
             }
