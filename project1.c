@@ -54,16 +54,16 @@ int main()
 
     int finalNum = 0; // final sum of the file
 
-    int fd[processes][2];
+    int fd[processes][2]; // file descriptor array, one descriptor for each process
 
     struct timeval current_time;
-    gettimeofday(&current_time, NULL);
+    gettimeofday(&current_time, NULL); //get start of child runtime
     suseconds_t timer = current_time.tv_usec;
     // loop for all processes
     for (int i = 0; i < processes; i++)
     {
 
-        if (pipe(fd[i]) == -1)
+        if (pipe(fd[i]) == -1) //validate pipe creation
         {
             printf("Pipe failed to create");
             return -1;
@@ -112,27 +112,25 @@ int main()
             }
 
             // close(fd[0]);
-            write(fd[i][1], &blockTotal, sizeof(int));
-            fclose(fp);
-            exit(0);
+            write(fd[i][1], &blockTotal, sizeof(int)); //write to process i descriptor 
+            fclose(fp); //close the file
+            exit(0); //exit process
         }
     }
 
     wait(NULL); //wait for child processes
     //read child process data
-    for(int i =0; i < processes; i++){
-        // close(fd[1]);
-        int childTotal;
+    for(int i = 0; i < processes; i++){ //read each child input
+        int childTotal; //temp value for child data
         read(fd[i][0], &childTotal, sizeof(int));
-        // close(fd[0]);
         printf("\nChild %d sum is: %d", i, childTotal);
 
-        finalNum += childTotal;
+        finalNum += childTotal; //sum child data
     }
     printf("\nTotal sum is: %d", finalNum);
 
-    gettimeofday(&current_time, NULL);
-    timer = current_time.tv_usec - timer;
+    gettimeofday(&current_time, NULL); //get end of runtime
+    timer = current_time.tv_usec - timer; //subtract start of runtime to end of runtime
 
     printf("\nTime taken (microseconds): %ld", timer);
 
